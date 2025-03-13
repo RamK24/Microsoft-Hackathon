@@ -34,7 +34,7 @@ const SignUp = () => {
   const handleSubmit = async (e) => {  
     e.preventDefault();
     setRequestError(false);
-    const response = await register(values);
+    const response = await signup(values);
     if(!response?.success) return setRequestError(response?.message || 'Something went wrong');
     toast.success("Registered successful");
     localStorage.setItem('token', response?.data?.token);
