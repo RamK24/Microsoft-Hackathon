@@ -30,11 +30,11 @@ const Login = () => {
   const handleSubmit = async (e) => {  
     e.preventDefault();
     setRequestError(false);
-    const response = await login(values);
+    const response = await signin(values);
     if(!response?.success) return setRequestError(response?.message || 'Something went wrong');
     toast.success("Login successful");
     localStorage.setItem('token', response?.data?.token);
-    navigate('/votes');
+    navigate('/dashboard');
 }
 
   return (

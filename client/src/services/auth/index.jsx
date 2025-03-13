@@ -20,6 +20,7 @@ export const signin = async (data) => {
     // Mock success response
     await delay(300); // simulate network delay
     return {
+        success: true,
         token: 'Fake-jwt-token',
         user: {
             id: 1,
@@ -47,6 +48,7 @@ export const getProfile = async (token) => {
 
     await delay(300);
     return {
+        success: true,
         id: 1,
         name: 'Fake User',
         email: 'faked@name.com'
@@ -67,6 +69,7 @@ export const signup = async (data) => {
 
     await delay(300);
     return {
+        success: true,
         message: 'Registration successful (mock)',
         user: {
             id: 2,
