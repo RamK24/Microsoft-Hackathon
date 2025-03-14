@@ -1,10 +1,12 @@
 
+import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
 interface Coach {
   id: string;
   name: string;
   email: string;
+  photoURL?: string;
 }
 
 interface AuthContextType {
@@ -12,6 +14,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => void;
 }
 
@@ -41,12 +44,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
-    
+
     // Mock authentication - in a real app, this would be an API call
     try {
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Mock successful login (would be an actual API call)
       if (email && password) {
         const mockCoach: Coach = {
@@ -54,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: email.split('@')[0],
           email: email,
         };
-        
+
         setCoach(mockCoach);
         localStorage.setItem('bridge_coach', JSON.stringify(mockCoach));
       } else {
@@ -73,6 +76,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('bridge_coach');
   };
 
+  const loginWithGoogle = async (): Promise<void> => {
+    setIsLoading(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const googleCoach: Coach = {
+        id: user.uid,
+        name: user.displayName || 'Google User',
+        email: user.email || '',
+        photoURL: user.photoURL || '',
+      };
+      setCoach(googleCoach);
+      localStorage.setItem('bridge_coach', JSON.stringify(googleCoach));
+    } catch (error) {
+      console.error('Google login failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   return (
     <AuthContext.Provider
       value={{
@@ -80,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!coach,
         isLoading,
         login,
+        loginWithGoogle,
         logout,
       }}
     >
