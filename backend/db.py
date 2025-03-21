@@ -41,5 +41,12 @@ cursor = conn.cursor()
 #     """)
 # conn.commit()
 
-result = cursor.execute(""" select * from emotion ;""")
+
+result = cursor.execute(""" select * from eMOTION ;""")
 print(result.fetchall())
+
+rows = result.fetchall()
+
+# Now you can print the result or iterate over it
+for row in rows:
+    print(row)

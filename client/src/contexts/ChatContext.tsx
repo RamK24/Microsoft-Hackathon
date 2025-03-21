@@ -1,202 +1,155 @@
-import React, { createContext, useContext, useState, ReactNode, useRef, useCallback, useEffect } from 'react';
-import { toast } from '@/components/ui/use-toast';
+import React, { createContext, useContext, useState } from 'react';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { useToast } from '@/components/ui/use-toast';
 
-interface Message {
+export interface Message {
   id: string;
   text: string;
-  sender: 'system' | 'user' | 'coach';
-  timestamp: Date;
+  sender: 'user' | 'coach' | 'system';
 }
 
 interface ChatContextType {
   messages: Message[];
   isOpen: boolean;
+  isLoading: boolean;
   isMuted: boolean;
-  currentMeetupId: string | null;
-  currentEmployeeName: string | null;
   isListening: boolean;
-  startListening: () => void;
-  stopListening: () => void;
-  addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
-  openChat: (meetupId: string, employeeName: string) => void;
+  currentEmployeeName: string;
+  currentMeetupId: string | null;
+  sessionId: string | null;
+  openChat: (employeeName: string, meetupId: string) => void;
   closeChat: () => void;
   toggleMute: () => void;
-  clearMessages: () => void;
+  addMessage: (message: Omit<Message, 'id'>) => void;
+  sendMessage: (text: string) => Promise<void>;
+  startListening: () => void;
+  stopListening: () => void;
   markMeetupAsDone: (meetupId: string) => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [currentMeetupId, setCurrentMeetupId] = useState<string | null>(null);
-  const [currentEmployeeName, setCurrentEmployeeName] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
-  
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const interimTranscriptRef = useRef('');
+  const [currentEmployeeName, setCurrentEmployeeName] = useState('Employee');
+  const [currentMeetupId, setCurrentMeetupId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const initSpeechRecognition = useCallback(() => {
-    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-      console.error('Speech recognition not supported in this browser');
-      return;
-    }
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-
-      interimTranscriptRef.current = interimTranscript;
-
-      if (finalTranscript) {
-        addMessage({
-          text: finalTranscript,
-          sender: 'coach',
-        });
-      }
-    };
-
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error('Speech recognition error', event.error);
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      if (isListening) {
-        recognition.start();
-      } else {
-        setIsListening(false);
-      }
-    };
-
-    recognitionRef.current = recognition;
-  }, [isListening]);
-
-  useEffect(() => {
-    initSpeechRecognition();
-    
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-    };
-  }, [initSpeechRecognition]);
-
-  const startListening = () => {
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.start();
-        setIsListening(true);
-        addMessage({
-          text: 'Coach voice transcription activated',
-          sender: 'system',
-        });
-      } catch (error) {
-        console.error('Error starting speech recognition:', error);
-      }
-    } else {
-      initSpeechRecognition();
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.start();
-          setIsListening(true);
-          addMessage({
-            text: 'Coach voice transcription activated',
-            sender: 'system',
-          });
-        } catch (error) {
-          console.error('Error starting speech recognition:', error);
-        }
-      }
-    }
-  };
-
-  const stopListening = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-      addMessage({
-        text: 'Coach voice transcription deactivated',
-        sender: 'system',
-      });
-    }
-  };
-
-  const addMessage = (message: Omit<Message, 'id' | 'timestamp'>) => {
-    const newMessage = {
-      ...message,
-      id: Date.now().toString(),
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, newMessage]);
-  };
-
-  const openChat = (meetupId: string, employeeName: string) => {
-    if (currentMeetupId !== meetupId) {
-      clearMessages();
-    }
-    setCurrentMeetupId(meetupId);
+  const openChat = (employeeName: string, meetupId: string) => {
     setCurrentEmployeeName(employeeName);
+    setCurrentMeetupId(meetupId);
     setIsOpen(true);
-    addMessage({
-      text: `Meetup about ${employeeName} started. You can use voice or text to communicate.`,
-      sender: 'system',
-    });
+    setMessages([]);
+    setSessionId(null);
   };
 
   const closeChat = () => {
-    if (isListening) {
-      stopListening();
-    }
     setIsOpen(false);
   };
 
   const toggleMute = () => {
     setIsMuted(!isMuted);
-    addMessage({
-      text: `System voice ${!isMuted ? 'muted' : 'unmuted'}.`,
-      sender: 'system',
-    });
   };
 
-  const clearMessages = () => {
-    setMessages([]);
+  const addMessage = (message: Omit<Message, 'id'>) => {
+    const newMessage = {
+      ...message,
+      id: uuidv4(),
+    };
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+    return newMessage;
+  };
+
+  const sendMessage = async (text: string) => {
+    if (text.trim() === '') return;
+
+    // Add user message to chat
+    addMessage({
+      text,
+      sender: 'user',
+    });
+
+    setIsLoading(true);
+
+    try {
+      const endpoint = 'http://127.0.0.1:8000/employee-chat/2';
+
+      const payload = sessionId
+        ? { message: text, session_id: sessionId }
+        : { message: text };
+
+      const response = await axios.post(endpoint, payload, {
+        headers: {
+          'Content-Type': 'application/json',  // Ensure it's JSON
+        }
+      });
+
+      if (response.data.status === 'success') {
+        // Save session ID for subsequent messages
+        if (response.data.session_id) {
+          setSessionId(response.data.session_id);
+        }
+
+        if (response.data.response) {
+          // Add the coach's response to the chat
+          addMessage({
+            text: response.data.response,
+            sender: 'coach',
+          });
+        }
+
+        // Check if conversation has ended
+        if (response.data.end) {
+          addMessage({
+            text: "Conversation has ended.",
+            sender: 'system',
+          });
+        }
+      } else {
+        // Handle error response
+        addMessage({
+          text: "Sorry, there was an error processing your message.",
+          sender: 'system',
+        });
+        toast({
+          title: "Error",
+          description: "Failed to get a response from the assistant.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      addMessage({
+        text: "Network error. Please check your connection and try again.",
+        sender: 'system',
+      });
+      toast({
+        title: "Connection Error",
+        description: "Unable to reach the chat service. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const startListening = () => {
+    setIsListening(true);
+  };
+
+  const stopListening = () => {
+    setIsListening(false);
   };
 
   const markMeetupAsDone = (meetupId: string) => {
-    addMessage({
-      text: `Meetup about ${currentEmployeeName} marked as complete and moved to history.`,
-      sender: 'system',
-    });
-    
-    const meetupCompletedEvent = new CustomEvent('meetup-completed', {
-      detail: {
-        meetupId: meetupId
-      }
-    });
-    window.dispatchEvent(meetupCompletedEvent);
-    
-    setTimeout(() => {
-      closeChat();
-    }, 2000);
+    // Implementation would depend on your backend
+    closeChat();
   };
 
   return (
@@ -204,17 +157,19 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         messages,
         isOpen,
+        isLoading,
         isMuted,
-        currentMeetupId,
-        currentEmployeeName,
         isListening,
-        startListening,
-        stopListening,
-        addMessage,
+        currentEmployeeName,
+        currentMeetupId,
+        sessionId,
         openChat,
         closeChat,
         toggleMute,
-        clearMessages,
+        addMessage,
+        sendMessage,
+        startListening,
+        stopListening,
         markMeetupAsDone,
       }}
     >
@@ -230,10 +185,3 @@ export const useChat = () => {
   }
   return context;
 };
-
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-  }
-}

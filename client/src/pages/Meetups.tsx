@@ -1,12 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TabsContent, Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mic, MessageSquare, Calendar, User, Calendar as CalendarIcon, Clock, Video, VideoOff, MicOff } from 'lucide-react';
+import { Mic, MessageSquare, Calendar, User, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { MeetupScheduler } from '@/components/meetup/MeetupScheduler';
 import { MeetupChat } from '@/components/meetup/MeetupChat';
-import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
 import { useChat } from '@/contexts/ChatContext';
 
