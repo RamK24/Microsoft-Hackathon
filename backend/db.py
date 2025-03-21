@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 import pyodbc
-
 load_dotenv()
 
 server_name = os.getenv("USER_DB_SERVER_NAME")
