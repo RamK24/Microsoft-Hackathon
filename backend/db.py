@@ -23,7 +23,7 @@ conn_str = (
 conn = None  # Define conn before the try block
 
 try:
-    conn = pyodbc.connect(conn_str)
+    conn = pyodbc.connect(conn_str, autocommit=True)  # Keep the connection open with autocommit enabled
     print("Connected successfully!")
 
     cursor = conn.cursor()  # Only create cursor if connection succeeds
@@ -45,5 +45,6 @@ except Exception as e:
     print("Error:", e)
 
 finally:
-    if conn:
-        conn.close()  # Ensure connection is closed properly
+    if conn:  # Don't close the connection explicitly to return it to the pool
+        # conn.close()  # Optional: comment this out for connection pooling
+        pass  # Connection will be automatically managed by the pool
