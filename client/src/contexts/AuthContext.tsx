@@ -1,5 +1,4 @@
-
-import { auth, googleProvider, signInWithPopup } from '@/lib/firebase';
+import { auth, googleProvider, microsoftProvider, signInWithPopup } from '@/lib/firebase';
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
 interface Coach {
@@ -15,6 +14,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
+  loginWithMicrosoft: () => Promise<void>; // New method for Microsoft login
   logout: () => void;
 }
 
@@ -25,7 +25,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for saved session on mount
     const checkAuth = async () => {
       const savedCoach = localStorage.getItem('bridge_coach');
       if (savedCoach) {
@@ -44,20 +43,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
-
-    // Mock authentication - in a real app, this would be an API call
     try {
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock successful login (would be an actual API call)
       if (email && password) {
         const mockCoach: Coach = {
           id: '1',
           name: email.split('@')[0],
           email: email,
         };
-
         setCoach(mockCoach);
         localStorage.setItem('bridge_coach', JSON.stringify(mockCoach));
       } else {
@@ -97,6 +90,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithMicrosoft = async (): Promise<void> => {
+    setIsLoading(true);
+    try {
+      const result = await signInWithPopup(auth, microsoftProvider);
+      const user = result.user;
+      const microsoftCoach: Coach = {
+        id: user.uid,
+        name: user.displayName || 'Microsoft User',
+        email: user.email || '',
+        photoURL: user.photoURL || '',
+      };
+      setCoach(microsoftCoach);
+      localStorage.setItem('bridge_coach', JSON.stringify(microsoftCoach));
+    } catch (error) {
+      console.error('Microsoft login failed:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <AuthContext.Provider
@@ -106,6 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         login,
         loginWithGoogle,
+        loginWithMicrosoft, // Add Microsoft login method here
         logout,
       }}
     >

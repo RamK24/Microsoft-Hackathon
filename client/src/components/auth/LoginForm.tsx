@@ -7,12 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/components/ui/use-toast';
 import { AtSign, Lock, LogIn } from 'lucide-react';
+import { FaMicrosoft, FaGoogle } from 'react-icons/fa';
+
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login, loginWithGoogle } = useAuth();
+  const { login, loginWithMicrosoft, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const handleGoogleLogin = async (e: React.FormEvent) => {
@@ -30,6 +32,13 @@ export const LoginForm: React.FC = () => {
     }
   };
 
+  const handleMicrosoftLogin = async () => {
+    try {
+      await loginWithMicrosoft();
+    } catch (error) {
+      console.error('Microsoft login failed:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,10 +169,11 @@ export const LoginForm: React.FC = () => {
         <div className="grid grid-cols-2 gap-4">
           <Button
             type="button"
+            onClick={handleMicrosoftLogin}
             variant="outline"
             className="bg-secondary/40 border-white/20 text-white hover:bg-secondary/60 hover:text-white"
           >
-            Microsoft
+            <FaMicrosoft size={25} className='text-primary' />Microsoft
           </Button>
           <Button
             type="button"
@@ -171,7 +181,7 @@ export const LoginForm: React.FC = () => {
             onClick={handleGoogleLogin}
             className="bg-secondary/40 border-white/20 text-white hover:bg-secondary/60 hover:text-white"
           >
-            Google
+            <FaGoogle className='text-primary' size={25} />Google
           </Button>
         </div>
 
