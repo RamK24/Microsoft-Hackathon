@@ -1,9 +1,11 @@
 # Python bytecode files
 __pycache__/
+backend/__pycache__
 *.py[cod]
 *.pyo
 
 # Virtual environments
+backend/myenv/
 venv/
 myenv/
 .env/
