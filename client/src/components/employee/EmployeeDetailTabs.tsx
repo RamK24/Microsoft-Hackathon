@@ -3,21 +3,11 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { LineChart, History, Calendar } from 'lucide-react';
-import { EmotionalToneTimeline } from '../dashboard/EmotionalToneTimeline';
 import { WeeklySummary } from '../dashboard/WeeklySummary';
 import { EmployeeMood } from '../dashboard/EmployeeMood';
 import { JobRecommendations } from './JobRecommendations';
+import { EmotionsList } from './EmotionsList';
 
-// Mock data for the charts
-const MOCK_EMOTION_DATA = [
-  { date: 'Jan 1', value: 25, rawEmotion: 'negative' as const },
-  { date: 'Jan 8', value: 40, rawEmotion: 'negative' as const },
-  { date: 'Jan 15', value: 50, rawEmotion: 'neutral' as const },
-  { date: 'Jan 22', value: 75, rawEmotion: 'positive' as const },
-  { date: 'Jan 29', value: 60, rawEmotion: 'neutral' as const },
-  { date: 'Feb 5', value: 80, rawEmotion: 'positive' as const },
-  { date: 'Feb 12', value: 90, rawEmotion: 'positive' as const },
-];
 
 interface EmployeeDetailTabsProps {
   employee: any;
@@ -42,21 +32,7 @@ export const EmployeeDetailTabs: React.FC<EmployeeDetailTabsProps> = ({ employee
 
         {/* Progress Tracking Tab */}
         <TabsContent value="progress" className="space-y-6">
-          {/* Emotional Timeline - Only display the card once */}
-          <Card className="transition-all duration-500 ease-in-out hover:shadow-md">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-semibold">Emotional Tone Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <EmotionalToneTimeline
-                  emotionData={MOCK_EMOTION_DATA}
-                  hideCard={true}
-                  className="h-full"
-                />
-              </div>
-            </CardContent>
-          </Card>
+          <EmotionsList />
 
           <EmployeeMood employeeId='emp-1' />
           <Card className="transition-all duration-500 ease-in-out hover:shadow-md">
