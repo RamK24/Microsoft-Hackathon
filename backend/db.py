@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import pyodbc
+
 load_dotenv()
 
 server_name = os.getenv("USER_DB_SERVER_NAME")
@@ -19,34 +20,30 @@ conn_str = (
     "Connection Timeout=30;"
 )
 
+conn = None  # Define conn before the try block
 
 try:
     conn = pyodbc.connect(conn_str)
     print("Connected successfully!")
 
+    cursor = conn.cursor()  # Only create cursor if connection succeeds
+
+    # cursor.execute("""
+    #     IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Emotion' AND xtype='U')
+    #     CREATE TABLE Emotion (
+    #         user_id INT,
+    #         reason nvarchar(2000),
+    #         emotion nvarchar(200)
+    #     )
+    # """)
+    # conn.commit()
+
+    result = cursor.execute("SELECT * FROM eMOTION;")
+    print(result.fetchall())
+
 except Exception as e:
     print("Error:", e)
 
-
-cursor = conn.cursor()
-
-# cursor.execute("""
-#         IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Emotion' AND xtype='U')
-#         CREATE TABLE Emotion (
-#             user_id INT,
-#             reason nvarchar(2000),
-#                emotion nvarchar(200)
-#
-#         )
-#     """)
-# conn.commit()
-
-
-result = cursor.execute(""" select * from eMOTION ;""")
-print(result.fetchall())
-
-rows = result.fetchall()
-
-# Now you can print the result or iterate over it
-for row in rows:
-    print(row)
+finally:
+    if conn:
+        conn.close()  # Ensure connection is closed properly
