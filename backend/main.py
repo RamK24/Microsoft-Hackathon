@@ -11,6 +11,7 @@ from fastapi import HTTPException, status
 from datetime import datetime, timedelta
 import asyncio
 import json
+from contextlib import closing
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -200,34 +201,31 @@ def get_relevant_jobs(id):
 @app.get("/emotions", response_model=EmotionResponse)
 async def get_emotions():
     try:
-        # Open connection
-        cursor = conn.cursor()
-        
-        # Adjust the query to match the actual columns in your table
-        result = cursor.execute("SELECT user_id, reason, emotion, created_date FROM eMOTION;")
-        rows = result.fetchall()
-        
-        # Convert rows to list of EmotionData objects including created_date
-        emotions = [
-            EmotionData(
-                user_id=row[0],    # Assuming the first column is user_id
-                reason=row[1],     # Assuming the second column is reason
-                emotion=row[2],    # Assuming the third column is emotion
-                created_date=row[3]  # Assuming the fourth column is created_date
+        # Using context manager to ensure that the connection and cursor are closed after the operation
+        with closing(conn.cursor()) as cursor:
+            cursor.execute("SELECT user_id, reason, emotion, created_date FROM eMOTION;")
+            rows = cursor.fetchall()
+
+            # Convert rows to list of EmotionData objects including created_date
+            emotions = [
+                EmotionData(
+                    user_id=row[0],    
+                    reason=row[1],     
+                    emotion=row[2],    
+                    created_date=row[3]  
+                )
+                for row in rows
+            ]
+            
+            return EmotionResponse(
+                status="success",
+                data=emotions,
+                message="Emotions retrieved successfully"
             )
-            for row in rows
-        ]
-        
-        # Close connection after query execution
-        cursor.close()
-        
-        return EmotionResponse(
-            status="success",
-            data=emotions,
-            message="Emotions retrieved successfully"
-        )
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+    
     finally:
-        # Close the connection in the finally block to ensure it's always closed
+        # Closing the connection in finally block if using a persistent connection
         conn.close()
