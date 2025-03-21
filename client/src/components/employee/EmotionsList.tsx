@@ -26,14 +26,14 @@ interface CustomTooltipProps {
     label?: string;
 }
 
-const sampleEmotions: EmotionData[] = [
-    { user_id: 1, reason: "Achieved a goal", emotion: "excited", created_date: "2025-03-20T10:30:00Z" },
-    { user_id: 2, reason: "Had a normal day", emotion: "neutral", created_date: "2025-04-19T14:45:00Z" },
-    { user_id: 3, reason: "Lost an important document", emotion: "sad", created_date: "2025-05-18T08:15:00Z" }
-];
+// const sampleEmotions: EmotionData[] = [
+//     { user_id: 1, reason: "Achieved a goal", emotion: "excited", created_date: "2025-03-20T10:30:00Z" },
+//     { user_id: 2, reason: "Had a normal day", emotion: "neutral", created_date: "2025-04-19T14:45:00Z" },
+//     { user_id: 3, reason: "Lost an important document", emotion: "sad", created_date: "2025-05-18T08:15:00Z" }
+// ];
 
 export const EmotionsList: React.FC = () => {
-    const [emotions, setEmotions] = useState<EmotionData[]>(sampleEmotions);
+    const [emotions, setEmotions] = useState<EmotionData[]>();
     const [loading, setLoading] = useState(true);
     const [selectedView, setSelectedView] = useState<'timeline' | 'summary'>('timeline');
     const { toast } = useToast();
@@ -142,10 +142,10 @@ export const EmotionsList: React.FC = () => {
     };
 
     const prepareTimelineData = () => {
-        if (!emotions.length) return [];
+        if (!emotions?.length) return [];
 
         // First, convert all emotions to data points with dates and scores
-        const dataPoints = emotions.map(emotion => ({
+        const dataPoints = emotions?.map(emotion => ({
             date: parseISO(emotion.created_date),
             score: getEmotionScore(emotion.emotion),
             emotion: emotion.emotion,
@@ -166,10 +166,10 @@ export const EmotionsList: React.FC = () => {
     };
 
     const getUniqueEmotions = () => {
-        if (!emotions.length) return [];
+        if (!emotions?.length) return [];
 
         const uniqueMap = new Map();
-        emotions.forEach(emotion => {
+        emotions?.forEach(emotion => {
             if (!uniqueMap.has(emotion.emotion)) {
                 uniqueMap.set(emotion.emotion, {
                     emotion: emotion.emotion,
@@ -234,7 +234,7 @@ export const EmotionsList: React.FC = () => {
                     <div className="flex justify-center items-center h-[300px]">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                     </div>
-                ) : emotions.length === 0 ? (
+                ) : emotions?.length === 0 ? (
                     <div className="flex justify-center items-center h-[300px]">
                         <p className="text-muted-foreground">No emotion data available</p>
                     </div>

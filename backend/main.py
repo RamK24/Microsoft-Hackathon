@@ -201,8 +201,9 @@ def get_relevant_jobs(id):
 @app.get("/emotions", response_model=EmotionResponse)
 async def get_emotions():
     try:
-        # Using context manager to ensure that the connection and cursor are closed after the operation
-        with closing(conn.cursor()) as cursor:
+        # Using context manager to ensure that only the cursor is closed after the operation
+        cursor = conn.cursor()
+        try:
             cursor.execute("SELECT user_id, reason, emotion, created_date FROM eMOTION;")
             rows = cursor.fetchall()
 
@@ -222,10 +223,8 @@ async def get_emotions():
                 data=emotions,
                 message="Emotions retrieved successfully"
             )
+        finally:
+            cursor.close()  # Only close the cursor, not the connection
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-    
-    finally:
-        # Closing the connection in finally block if using a persistent connection
-        conn.close()
