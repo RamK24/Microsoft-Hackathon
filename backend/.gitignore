@@ -10,7 +10,6 @@ venv/
 myenv/
 .env/
 *.env
-.env.*
 
 # Python distribution packages
 *.egg
