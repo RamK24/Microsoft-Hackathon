@@ -4,8 +4,8 @@ __pycache__/
 *.pyo
 
 # Virtual environments
-venv/
-myenv/
+/venv
+/myenv
 .env/
 *.env
 .env.*
@@ -56,3 +56,9 @@ Thumbs.db
 
 # FastAPI metadata
 *.sqlite
+
+# Backend specific
+backend/__pycache__/
+backend/myenv/
+backend/.env
+backend/.gitignore
