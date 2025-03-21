@@ -31,25 +31,6 @@ export const EmployeeMood: React.FC<EmployeeMoodProps> = ({ employeeId }) => {
     const fetchMoodData = async () => {
       setLoading(true);
       try {
-        // Try to get from cache first
-        const cachedData = localStorage.getItem('emotionsData');
-        const cachedTimestamp = localStorage.getItem('emotionsTimestamp');
-        const currentTimestamp = new Date().getTime();
-
-        // Use cached data if it's less than 5 minutes old
-        if (cachedData && cachedTimestamp && currentTimestamp - parseInt(cachedTimestamp) < 5 * 60 * 1000) {
-          const emotions: EmotionData[] = JSON.parse(cachedData);
-          if (emotions.length > 0) {
-            // Get the latest emotion by created_date
-            const sortedEmotions = [...emotions].sort((a, b) =>
-              new Date(b.created_date).getTime() - new Date(a.created_date).getTime()
-            );
-            setMoodData(sortedEmotions[0]);
-            setLoading(false);
-            return;
-          }
-        }
-
         // Otherwise fetch from API with a timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
@@ -66,10 +47,6 @@ export const EmployeeMood: React.FC<EmployeeMoodProps> = ({ employeeId }) => {
             new Date(b.created_date).getTime() - new Date(a.created_date).getTime()
           );
           setMoodData(sortedEmotions[0]);
-
-          // Cache the data
-          localStorage.setItem('emotionsData', JSON.stringify(response.data.data));
-          localStorage.setItem('emotionsTimestamp', currentTimestamp.toString());
         } else {
           setError('No mood data available');
         }

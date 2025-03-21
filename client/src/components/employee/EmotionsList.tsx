@@ -26,12 +26,6 @@ interface CustomTooltipProps {
     label?: string;
 }
 
-// const sampleEmotions: EmotionData[] = [
-//     { user_id: 1, reason: "Achieved a goal", emotion: "excited", created_date: "2025-03-20T10:30:00Z" },
-//     { user_id: 2, reason: "Had a normal day", emotion: "neutral", created_date: "2025-04-19T14:45:00Z" },
-//     { user_id: 3, reason: "Lost an important document", emotion: "sad", created_date: "2025-05-18T08:15:00Z" }
-// ];
-
 export const EmotionsList: React.FC = () => {
     const [emotions, setEmotions] = useState<EmotionData[]>();
     const [loading, setLoading] = useState(true);
@@ -40,22 +34,10 @@ export const EmotionsList: React.FC = () => {
 
     const fetchEmotions = async () => {
         try {
-            const cachedData = localStorage.getItem('emotionsData');
-            const cachedTimestamp = localStorage.getItem('emotionsTimestamp');
-            const currentTimestamp = new Date().getTime();
-
-            // Check if the data is cached and still valid (e.g., within 5 minutes)
-            if (cachedData && cachedTimestamp && currentTimestamp - parseInt(cachedTimestamp) < 5 * 60 * 1000) {
-                setEmotions(JSON.parse(cachedData));  // Use cached data if available
-                setLoading(false);
-                return;
-            }
 
             const response = await axios.get<EmotionResponse>('http://127.0.0.1:8000/emotions');
             if (response.data.status === 'success') {
                 setEmotions(response.data.data);
-                localStorage.setItem('emotionsData', JSON.stringify(response.data.data));  // Cache the data
-                localStorage.setItem('emotionsTimestamp', currentTimestamp.toString());  // Cache the timestamp
             } else {
                 toast({
                     title: "Error",
