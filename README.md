@@ -7,8 +7,7 @@
 ---
 
 ## 🚀 Overview  
-**Bridge** is a powerful solution designed to close the gap between siloed systems and enterprise workflows by seamlessly connecting data pipelines across Azure services. Built with scalability and simplicity in mind, Bridge empowers organizations to automate, monitor, and optimize cloud-based integrations with ease.
-
+**Bridge** is an AI-driven (LLMs) solution to support disabled job seekers with personalized career recommendations and emotional well-being tracking.
 ---
 
 ## 💡 Key Features  
